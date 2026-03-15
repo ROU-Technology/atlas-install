@@ -21,12 +21,12 @@ get_platform() {
     x86_64) 
       if [ "$os" = "darwin" ]; then
         echo "Darwin x64 not available - use arm64 machine or Linux" >&2
-        exit 1
+        return 1
       fi
       arch="x64" 
       ;;
     aarch64|arm64) arch="arm64" ;;
-    *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+    *) echo "Unsupported architecture: $arch" >&2; return 1 ;;
   esac
   
   echo "${os}-${arch}"
@@ -52,13 +52,15 @@ install_cli() {
     echo "Verifying checksum..."
     curl -fSL "$CHECKSUM_URL" -o "/tmp/checksums.txt"
     cd /tmp
-    sha256sum -c checksums.txt --strict || { echo "Checksum verification failed!"; exit 1; }
+    grep "atlas-${PLATFORM}.gz" checksums.txt > filtered_checksums.txt || true
+    sha256sum -c filtered_checksums.txt --strict || { echo "Checksum verification failed!"; cd -; exit 1; }
+    cd /tmp
     cd -
   fi
   
-  gunzip -f "/tmp/atlas-${PLATFORM}.gz" -c > "/tmp/atlas"
-  $SUDO mv "/tmp/atlas" "$INSTALL_DIR/atlas"
+  gunzip -fdk "/tmp/atlas-${PLATFORM}.gz"
   $SUDO chmod +x "$INSTALL_DIR/atlas"
+  mv "/tmp/atlas-${PLATFORM}" "$INSTALL_DIR/atlas"
   rm -f "/tmp/atlas-${PLATFORM}.gz"
 
   echo "Atlas CLI installed successfully!"

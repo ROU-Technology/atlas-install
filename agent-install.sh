@@ -22,12 +22,12 @@ get_platform() {
     x86_64) 
       if [ "$os" = "darwin" ]; then
         echo "Darwin x64 not available - use arm64 machine or Linux" >&2
-        exit 1
+        return 1
       fi
       arch="x64" 
       ;;
     aarch64|arm64) arch="arm64" ;;
-    *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+    *) echo "Unsupported architecture: $arch" >&2; return 1 ;;
   esac
   
   echo "${os}-${arch}"
