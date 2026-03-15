@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ATLAS_VERSION="${ATLAS_VERSION:-latest}"
-ATLAS_PRIVATE_REPO="${ATLAS_PRIVATE_REPO:-ROU-Technology/atlas-ts}"
+ATLAS_REPO="${ATLAS_REPO:-ROU-Technology/atlas-install}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 CONFIG_DIR="${CONFIG_DIR:-/etc/atlas-agent}"
 
@@ -19,9 +19,9 @@ install_agent() {
   esac
 
   if [ "$ATLAS_VERSION" = "latest" ]; then
-    BINARY_URL="https://github.com/${ATLAS_PRIVATE_REPO}/releases/latest/download/atlas-agent-${ARCH}"
+    BINARY_URL="https://github.com/${ATLAS_REPO}/releases/latest/download/atlas-agent-${ARCH}"
   else
-    BINARY_URL="https://github.com/${ATLAS_PRIVATE_REPO}/releases/download/${ATLAS_VERSION}/atlas-agent-${ARCH}"
+    BINARY_URL="https://github.com/${ATLAS_REPO}/releases/download/${ATLAS_VERSION}/atlas-agent-${ARCH}"
   fi
   
   echo "Downloading Atlas Agent from ${BINARY_URL}..."
@@ -72,9 +72,9 @@ install_cli() {
   esac
 
   if [ "$ATLAS_VERSION" = "latest" ]; then
-    BINARY_URL="https://github.com/${ATLAS_PRIVATE_REPO}/releases/latest/download/atlas-${ARCH}"
+    BINARY_URL="https://github.com/${ATLAS_REPO}/releases/latest/download/atlas-${ARCH}"
   else
-    BINARY_URL="https://github.com/${ATLAS_PRIVATE_REPO}/releases/download/${ATLAS_VERSION}/atlas-${ARCH}"
+    BINARY_URL="https://github.com/${ATLAS_REPO}/releases/download/${ATLAS_VERSION}/atlas-${ARCH}"
   fi
 
   echo "Downloading Atlas CLI from ${BINARY_URL}..."
@@ -125,10 +125,10 @@ Commands:
   help            Show this help message
 
 Environment Variables:
-  ATLAS_VERSION       Version to install (default: latest)
-  ATLAS_PRIVATE_REPO  Private repo (default: ROU-Technology/atlas-ts)
-  INSTALL_DIR         Installation directory (default: /usr/local/bin)
-  CONFIG_DIR          Agent config directory (default: /etc/atlas-agent)
+  ATLAS_VERSION   Version to install (default: latest)
+  ATLAS_REPO      Public repo with releases (default: ROU-Technology/atlas-install)
+  INSTALL_DIR     Installation directory (default: /usr/local/bin)
+  CONFIG_DIR      Agent config directory (default: /etc/atlas-agent)
 
 Examples:
   ./install.sh                              # Install everything
@@ -136,9 +136,6 @@ Examples:
   ./install.sh install-agent                # Agent only
   ATLAS_VERSION=v1.0.0 ./install.sh        # Specific version
   ./install.sh uninstall                    # Remove everything
-
-Note: This script downloads binaries from your private repository's releases.
-      The repository must have public releases enabled.
 HELPEOF
 }
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ATLAS_VERSION="${ATLAS_VERSION:-latest}"
-ATLAS_PRIVATE_REPO="${ATLAS_PRIVATE_REPO:-ROU-Technology/atlas-ts}"
+ATLAS_REPO="${ATLAS_REPO:-ROU-Technology/atlas-install}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 
 install_cli() {
@@ -16,18 +16,16 @@ install_cli() {
   esac
 
   if [ "$ATLAS_VERSION" = "latest" ]; then
-    BINARY_URL="https://github.com/${ATLAS_PRIVATE_REPO}/releases/latest/download/atlas-${ARCH}"
+    BINARY_URL="https://github.com/${ATLAS_REPO}/releases/latest/download/atlas-${ARCH}"
   else
-    BINARY_URL="https://github.com/${ATLAS_PRIVATE_REPO}/releases/download/${ATLAS_VERSION}/atlas-${ARCH}"
+    BINARY_URL="https://github.com/${ATLAS_REPO}/releases/download/${ATLAS_VERSION}/atlas-${ARCH}"
   fi
 
   echo "Downloading Atlas CLI from ${BINARY_URL}..."
   curl -fSL "$BINARY_URL" -o "$INSTALL_DIR/atlas"
   chmod +x "$INSTALL_DIR/atlas"
 
-  echo ""
   echo "Atlas CLI installed successfully!"
-  echo "Run 'atlas --help' to get started."
 }
 
 uninstall_cli() {
@@ -49,18 +47,14 @@ Commands:
   help            Show this help message
 
 Environment Variables:
-  ATLAS_VERSION       Version to install (default: latest)
-  ATLAS_PRIVATE_REPO  Private repo (default: ROU-Technology/atlas-ts)
-  INSTALL_DIR         Installation directory (default: /usr/local/bin)
+  ATLAS_VERSION   Version to install (default: latest)
+  ATLAS_REPO      Public repo with releases (default: ROU-Technology/atlas-install)
+  INSTALL_DIR     Installation directory (default: /usr/local/bin)
 
 Examples:
   ./install.sh                              # Install latest
-  ATLAS_VERSION=v1.0.0 ./install.sh        # Install specific version
-  ATLAS_PRIVATE_REPO=my-org/atlas ./install.sh  # Different repo
-  ./install.sh uninstall                   # Uninstall CLI
-
-Note: This script downloads binaries from your private repository's releases.
-      The repository must have public releases enabled.
+  ATLAS_VERSION=v1.0.0 ./install.sh        # Specific version
+  ./install.sh uninstall                    # Uninstall CLI
 HELPEOF
 }
 

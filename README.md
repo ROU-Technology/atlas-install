@@ -43,12 +43,17 @@ curl -sL https://raw.githubusercontent.com/ROU-Technology/atlas-install/main/ins
 
 ## Environment Variables
 
-| Variable        | Default                   | Description                |
-| --------------- | ------------------------- | -------------------------- |
-| `ATLAS_VERSION` | `latest`                  | Version to install         |
-| `ATLAS_REPO`    | `ROU-Technology/atlas-ts` | Private repo with releases |
-| `INSTALL_DIR`   | `/usr/local/bin`          | Installation directory     |
-| `CONFIG_DIR`    | `/etc/atlas-agent`        | Agent config directory     |
+| Variable        | Default                        | Description               |
+| --------------- | ------------------------------ | ------------------------- |
+| `ATLAS_VERSION` | `latest`                       | Version to install        |
+| `ATLAS_REPO`    | `ROU-Technology/atlas-install` | Public repo with releases |
+| `INSTALL_DIR`   | `/usr/local/bin`               | Installation directory    |
+| `CONFIG_DIR`    | `/etc/atlas-agent`             | Agent config directory    |
+
+## Architecture Support
+
+- x86_64 (x64)
+- aarch64 (arm64)
 
 ## Troubleshooting
 
@@ -62,10 +67,9 @@ curl -sL https://raw.githubusercontent.com/ROU-Technology/atlas-install/main/ins
 
 ### Binary Not Found
 
-Make sure releases are public on the private repository:
+Make sure releases exist in the public repo:
 
-1. Go to `ROU-Technology/atlas-ts` → Settings → Releases
-2. Enable "Public releases"
+- Check https://github.com/ROU-Technology/atlas-install/releases
 
 ## License
 
