@@ -35,6 +35,8 @@ get_platform() {
 install_cli() {
   echo "Installing Atlas CLI ${ATLAS_VERSION}..."
 
+  $SUDO mkdir -p "$INSTALL_DIR"
+
   PLATFORM=$(get_platform)
 
   if [ "$ATLAS_VERSION" = "latest" ]; then

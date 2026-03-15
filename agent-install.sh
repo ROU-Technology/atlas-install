@@ -37,6 +37,7 @@ install_agent() {
   echo "Installing Atlas Agent ${ATLAS_VERSION}..."
 
   $SUDO mkdir -p "$CONFIG_DIR"
+  $SUDO mkdir -p "$INSTALL_DIR"
 
   PLATFORM=$(get_platform)
   
