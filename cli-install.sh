@@ -6,6 +6,12 @@ ATLAS_REPO="${ATLAS_REPO:-ROU-Technology/atlas-install}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 VERIFY_CHECKSUM="${VERIFY_CHECKSUM:-true}"
 
+if [ "$EUID" -ne 0 ]; then
+  SUDO="sudo"
+else
+  SUDO=""
+fi
+
 get_platform() {
   local os arch
   os="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -44,8 +50,9 @@ install_cli() {
     cd -
   fi
   
-  gunzip -f "/tmp/atlas-${PLATFORM}.gz" -c > "$INSTALL_DIR/atlas"
-  chmod +x "$INSTALL_DIR/atlas"
+  gunzip -f "/tmp/atlas-${PLATFORM}.gz" -c > "/tmp/atlas"
+  $SUDO mv "/tmp/atlas" "$INSTALL_DIR/atlas"
+  $SUDO chmod +x "$INSTALL_DIR/atlas"
   rm -f "/tmp/atlas-${PLATFORM}.gz"
 
   echo "Atlas CLI installed successfully!"
@@ -53,7 +60,7 @@ install_cli() {
 
 uninstall_cli() {
   echo "Uninstalling Atlas CLI..."
-  rm -f "$INSTALL_DIR/atlas"
+  $SUDO rm -f "$INSTALL_DIR/atlas"
   echo "Atlas CLI uninstalled."
 }
 

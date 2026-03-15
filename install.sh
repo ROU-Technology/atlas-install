@@ -7,6 +7,12 @@ INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 CONFIG_DIR="${CONFIG_DIR:-/etc/atlas-agent}"
 VERIFY_CHECKSUM="${VERIFY_CHECKSUM:-true}"
 
+if [ "$EUID" -ne 0 ]; then
+  SUDO="sudo"
+else
+  SUDO=""
+fi
+
 get_platform() {
   local os arch
   os="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -24,7 +30,7 @@ get_platform() {
 install_agent() {
   echo "Installing Atlas Agent ${ATLAS_VERSION}..."
 
-  mkdir -p "$CONFIG_DIR"
+  $SUDO mkdir -p "$CONFIG_DIR"
 
   PLATFORM=$(get_platform)
   
@@ -47,20 +53,21 @@ install_agent() {
     cd -
   fi
   
-  gunzip -f "/tmp/atlas-agent-${PLATFORM}.gz" -c > "$INSTALL_DIR/atlas-agent"
-  chmod +x "$INSTALL_DIR/atlas-agent"
+  gunzip -f "/tmp/atlas-agent-${PLATFORM}.gz" -c > "/tmp/atlas-agent"
+  $SUDO mv "/tmp/atlas-agent" "$INSTALL_DIR/atlas-agent"
+  $SUDO chmod +x "$INSTALL_DIR/atlas-agent"
   rm -f "/tmp/atlas-agent-${PLATFORM}.gz"
 
-  cat > "$CONFIG_DIR/atlas-agent.env" << 'ENVEOF'
+  $SUDO tee "$CONFIG_DIR/atlas-agent.env" > /dev/null << 'ENVEOF'
 ATLAS_AGENT_PORT=3001
 ATLAS_AGENT_AUTH_ENABLED=false
 ATLAS_AGENT_TOKEN=change-me
 ATLAS_CONFIG_PATH=/etc/atlas/atlas.yaml
 ENVEOF
 
-  if command -v systemctl &> /dev/null; then
+  if command -v systemctl &> /dev/null && [ -z "$SUDO" ] || [ -n "$SUDO" ] && command -v systemctl &> /dev/null; then
     echo "Creating systemd service..."
-    cat > /etc/systemd/system/atlas-agent.service << 'SYSDEOF'
+    $SUDO tee /etc/systemd/system/atlas-agent.service > /dev/null << 'SYSDEOF'
 [Unit]
 Description=Atlas Agent
 After=network.target docker.service
@@ -78,7 +85,7 @@ WantedBy=multi-user.target
 SYSDEOF
 
     echo "Reloading systemd..."
-    systemctl daemon-reload
+    $SUDO systemctl daemon-reload
   fi
 
   echo "Atlas Agent installed successfully!"
@@ -108,8 +115,9 @@ install_cli() {
     cd -
   fi
   
-  gunzip -f "/tmp/atlas-${PLATFORM}.gz" -c > "$INSTALL_DIR/atlas"
-  chmod +x "$INSTALL_DIR/atlas"
+  gunzip -f "/tmp/atlas-${PLATFORM}.gz" -c > "/tmp/atlas"
+  $SUDO mv "/tmp/atlas" "$INSTALL_DIR/atlas"
+  $SUDO chmod +x "$INSTALL_DIR/atlas"
   rm -f "/tmp/atlas-${PLATFORM}.gz"
 
   echo "Atlas CLI installed successfully!"
@@ -124,20 +132,20 @@ uninstall_agent() {
   echo "Uninstalling Atlas Agent..."
   
   if command -v systemctl &> /dev/null; then
-    systemctl stop atlas-agent 2>/dev/null || true
-    systemctl disable atlas-agent 2>/dev/null || true
-    rm -f /etc/systemd/system/atlas-agent.service
-    systemctl daemon-reload
+    $SUDO systemctl stop atlas-agent 2>/dev/null || true
+    $SUDO systemctl disable atlas-agent 2>/dev/null || true
+    $SUDO rm -f /etc/systemd/system/atlas-agent.service
+    $SUDO systemctl daemon-reload
   fi
   
-  rm -rf "$CONFIG_DIR"
-  rm -f "$INSTALL_DIR/atlas-agent"
+  $SUDO rm -rf "$CONFIG_DIR"
+  $SUDO rm -f "$INSTALL_DIR/atlas-agent"
   echo "Atlas Agent uninstalled."
 }
 
 uninstall_cli() {
   echo "Uninstalling Atlas CLI..."
-  rm -f "$INSTALL_DIR/atlas"
+  $SUDO rm -f "$INSTALL_DIR/atlas"
   echo "Atlas CLI uninstalled."
 }
 
