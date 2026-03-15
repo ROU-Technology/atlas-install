@@ -3,6 +3,8 @@ set -euo pipefail
 
 ATLAS_VERSION="${ATLAS_VERSION:-latest}"
 ATLAS_REPO="${ATLAS_REPO:-ROU-Technology/atlas-install}"
+ATLAS_SAAS_URL="${ATLAS_SAAS_URL:-}"
+ATLAS_API_KEY="${ATLAS_API_KEY:-}"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 CONFIG_DIR="${CONFIG_DIR:-/etc/atlas-agent}"
 VERIFY_CHECKSUM="${VERIFY_CHECKSUM:-true}"
@@ -12,6 +14,27 @@ if [ "$EUID" -ne 0 ]; then
 else
   SUDO=""
 fi
+
+verify_api_key() {
+  if [ -z "$ATLAS_SAAS_URL" ] || [ -z "$ATLAS_API_KEY" ]; then
+    return 0
+  fi
+
+  echo "Verifying API key with Atlas SaaS..."
+  local response
+  response=$(curl -fSL -X GET "${ATLAS_SAAS_URL}/api/v1/auth/verify" \
+    -H "Authorization: Bearer ${ATLAS_API_KEY}" \
+    -H "Content-Type: application/json" \
+    2>/dev/null) || {
+    echo "Failed to verify API key with Atlas SaaS" >&2
+    return 1
+  }
+
+  if [ -n "$response" ]; then
+    echo "API key verified successfully"
+  fi
+  return 0
+}
 
 get_platform() {
   local os arch
@@ -35,6 +58,8 @@ get_platform() {
 
 install_agent() {
   echo "Installing Atlas Agent ${ATLAS_VERSION}..."
+
+  verify_api_key || exit 1
 
   $SUDO mkdir -p "$CONFIG_DIR"
   $SUDO mkdir -p "$INSTALL_DIR"
@@ -67,12 +92,25 @@ install_agent() {
   $SUDO chmod +x "$INSTALL_DIR/atlas-agent"
   rm -f "/tmp/atlas-agent-${PLATFORM}.gz"
 
-  $SUDO tee "$CONFIG_DIR/atlas-agent.env" > /dev/null << 'ENVEOF'
-ATLAS_AGENT_PORT=3001
+  local env_content="ATLAS_AGENT_PORT=3001
 ATLAS_AGENT_AUTH_ENABLED=false
 ATLAS_AGENT_TOKEN=change-me
 ATLAS_CONFIG_PATH=/etc/atlas/atlas.yaml
-ENVEOF
+"
+
+  if [ -n "$ATLAS_SAAS_URL" ]; then
+    env_content+="ATLAS_SAAS_URL=${ATLAS_SAAS_URL}
+"
+  fi
+
+  if [ -n "$ATLAS_API_KEY" ]; then
+    env_content+="ATLAS_SAAS_TOKEN=${ATLAS_API_KEY}
+"
+  fi
+
+  $SUDO tee "$CONFIG_DIR/atlas-agent.env" > /dev/null << EOF
+$env_content
+EOF
 
   if command -v systemctl &> /dev/null; then
     echo "Creating systemd service..."
@@ -102,6 +140,8 @@ SYSDEOF
 
 install_cli() {
   echo "Installing Atlas CLI ${ATLAS_VERSION}..."
+
+  verify_api_key || exit 1
 
   $SUDO mkdir -p "$INSTALL_DIR"
 
@@ -178,6 +218,8 @@ Commands:
 Environment Variables:
   ATLAS_VERSION     Version to install (default: latest)
   ATLAS_REPO        Public repo with releases (default: ROU-Technology/atlas-install)
+  ATLAS_SAAS_URL    Atlas SaaS API URL (optional)
+  ATLAS_API_KEY     Atlas SaaS API key (optional, for SaaS mode)
   INSTALL_DIR       Installation directory (default: /usr/local/bin)
   CONFIG_DIR        Agent config directory (default: /etc/atlas-agent)
   VERIFY_CHECKSUM   Verify checksums (default: true)
@@ -188,6 +230,7 @@ Examples:
   ./install.sh install-agent                # Agent only
   ATLAS_VERSION=v2026.03.15.123456 ./install.sh  # Specific version
   VERIFY_CHECKSUM=false ./install.sh       # Skip checksum verification
+  ATLAS_SAAS_URL=https://api.atlas.io ATLAS_API_KEY=xxx ./install.sh  # Install with SaaS
   ./install.sh uninstall                    # Remove everything
 HELPEOF
 }
