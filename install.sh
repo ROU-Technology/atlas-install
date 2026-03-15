@@ -19,14 +19,14 @@ get_platform() {
   arch="$(uname -m)"
   
   case "$arch" in
-    x86_64) arch="x64" ;;
-    aarch64|arm64) 
-      if [ "$os" = "linux" ]; then
-        echo "Linux arm64 builds not yet available. Please use x64 or Darwin arm64." >&2
+    x86_64) 
+      if [ "$os" = "darwin" ]; then
+        echo "Darwin x64 not available - use arm64 machine or Linux" >&2
         exit 1
       fi
-      arch="arm64" 
+      arch="x64" 
       ;;
+    aarch64|arm64) arch="arm64" ;;
     *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
   esac
   
